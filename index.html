@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英语句式库 — English Sentence Pattern Arsenal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header">
+    <h1>英语句式库</h1>
+    <p class="subtitle">Build your personal arsenal of English sentence patterns</p>
+  </header>
+
+  <main id="app-root">
+    <section id="search-section">
+      <input
+        type="search"
+        id="search-input"
+        placeholder="Search patterns, formulas, or examples..."
+        autocomplete="off"
+      >
+      <select id="sort-select" aria-label="Sort patterns">
+        <option value="id-asc">ID (ascending)</option>
+        <option value="id-desc">ID (descending)</option>
+        <option value="difficulty">Difficulty</option>
+      </select>
+    </section>
+
+    <section id="tag-filter-section">
+      <!-- Dynamically rendered -->
+    </section>
+
+    <section id="stats-bar" aria-live="polite">
+      <!-- "Showing X of Y patterns" -->
+    </section>
+
+    <section id="pattern-grid">
+      <!-- Dynamically rendered -->
+    </section>
+
+    <section id="empty-state" hidden>
+      <div class="empty-state-content">
+        <p class="empty-state-icon">&#x1F50D;</p>
+        <p>No patterns match your current filters.</p>
+        <button id="clear-filters-btn" class="btn-clear">Clear all filters</button>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer">
+    <p>Add new patterns by editing <code>js/data.js</code></p>
+  </footer>
+
+  <script src="js/tags.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
