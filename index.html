@@ -10,6 +10,9 @@
   <header id="site-header">
     <h1>英语句式库</h1>
     <p class="subtitle">Build your personal arsenal of English sentence patterns</p>
+    <button id="btn-add-pattern" class="btn-add-pattern">
+      <span class="btn-add-pattern-icon">＋</span> Add Pattern
+    </button>
   </header>
 
   <main id="app-root">
@@ -48,12 +51,119 @@
     </section>
   </main>
 
+  <!-- Add Pattern Modal -->
+  <div id="add-pattern-modal" class="ap-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ap-modal-title">
+    <div class="ap-modal-panel">
+      <div class="ap-modal-header">
+        <h2 class="ap-modal-title" id="ap-modal-title">Add New Pattern</h2>
+        <button class="ap-modal-close" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="ap-modal-body">
+        <!-- Step 1: Analyze Section -->
+        <div class="ap-analyze-section">
+          <span class="ap-form-label">&#x1F50D; Auto Analyze (Paste a sentence)</span>
+          <div class="ap-analyze-row">
+            <textarea
+              id="ap-sentence-input"
+              class="ap-form-textarea"
+              placeholder="Paste an English sentence you encountered, e.g. &quot;Not only did she finish early, but she also saved money.&quot;"
+            ></textarea>
+            <button id="ap-analyze-btn" class="btn-analyze" type="button">Analyze</button>
+          </div>
+        </div>
+
+        <div class="ap-divider">or fill manually</div>
+
+        <!-- Pattern Name -->
+        <div class="ap-form-group">
+          <label class="ap-form-label" for="ap-pattern-input">Pattern Name</label>
+          <input id="ap-pattern-input" class="ap-form-input" type="text" placeholder="e.g. Not only ... but also ... (倒装强调)">
+        </div>
+
+        <!-- Native Feel -->
+        <div class="ap-form-group">
+          <label class="ap-form-label" for="ap-nativefeel-input">Native Feel (in Chinese)</label>
+          <input id="ap-nativefeel-input" class="ap-form-input" type="text" placeholder="用中文描述这个句式的'感觉'...">
+          <span class="ap-form-hint">How does this pattern "feel" in Chinese? What's the emotional/rhetorical weight?</span>
+        </div>
+
+        <!-- Formula -->
+        <div class="ap-form-group">
+          <label class="ap-form-label" for="ap-formula-input">Formula</label>
+          <input id="ap-formula-input" class="ap-form-input ap-formula-input" type="text" placeholder="Skeleton with [placeholders], e.g. Not only [aux + S + V], but [S] also [V] ...">
+        </div>
+
+        <!-- Scene Tags -->
+        <div class="ap-form-group">
+          <label class="ap-form-label">Scene Tags</label>
+          <div id="ap-tag-selector" class="ap-tag-selector">
+            <!-- Dynamically built -->
+          </div>
+        </div>
+
+        <!-- Examples -->
+        <div class="ap-form-group">
+          <label class="ap-form-label">Examples</label>
+          <div id="ap-examples-container" class="ap-examples-container">
+            <!-- Dynamically built -->
+          </div>
+          <button id="ap-add-example-btn" class="btn-add-example" type="button">＋ Add Example</button>
+        </div>
+
+        <!-- Usage Note -->
+        <div class="ap-form-group">
+          <label class="ap-form-label" for="ap-usage-input">Usage Note (in Chinese)</label>
+          <textarea id="ap-usage-input" class="ap-form-textarea" placeholder="When to use, common mistakes, register notes..."></textarea>
+        </div>
+
+        <!-- Source -->
+        <div class="ap-form-group">
+          <label class="ap-form-label" for="ap-source-input">Source</label>
+          <input id="ap-source-input" class="ap-form-input" type="text" placeholder="e.g. The Economist, IELTS Reading, ...">
+        </div>
+
+        <!-- Difficulty -->
+        <div class="ap-form-group">
+          <label class="ap-form-label" for="ap-difficulty-select">Difficulty</label>
+          <select id="ap-difficulty-select" class="ap-difficulty-select">
+            <option value="basic">Basic</option>
+            <option value="intermediate" selected>Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="ap-form-group">
+          <span class="ap-form-label">Live Preview</span>
+          <div id="ap-preview-card" class="ap-preview-section">
+            <!-- Dynamically built -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="ap-modal-footer">
+        <div class="ap-footer-left">
+          <button id="ap-delete-btn" class="btn-danger" type="button" style="display:none">Delete</button>
+        </div>
+        <div class="ap-footer-right">
+          <button id="ap-cancel-btn" class="btn-secondary" type="button">Cancel</button>
+          <button id="ap-export-btn" class="btn-secondary" type="button">Export as JS</button>
+          <button id="ap-save-btn" class="btn-primary" type="button">Save Pattern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer id="site-footer">
     <p>Add new patterns by editing <code>js/data.js</code></p>
   </footer>
 
   <script src="js/tags.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/pattern-analyzer.js"></script>
+  <script src="js/add-pattern.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

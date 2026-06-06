@@ -188,6 +188,37 @@ const PATTERNS = [
 ];
 
 /*
+ * LOCAL STORAGE MERGE HELPERS
+ * ──────────────────────────────────────────
+ * User-added patterns are stored in localStorage and merged with
+ * the built-in PATTERNS at runtime. This keeps the static site
+ * working without a backend while allowing users to add patterns.
+ */
+
+function loadUserPatterns() {
+  try {
+    return JSON.parse(localStorage.getItem("userPatterns") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function getAllPatterns() {
+  var userPatterns = loadUserPatterns();
+  return PATTERNS.concat(userPatterns);
+}
+
+function getNextUserPatternId() {
+  var userPatterns = loadUserPatterns();
+  if (userPatterns.length === 0) return 9000;
+  var maxId = 9000;
+  for (var i = 0; i < userPatterns.length; i++) {
+    if (userPatterns[i].id > maxId) maxId = userPatterns[i].id;
+  }
+  return maxId + 1;
+}
+
+/*
  * COPY-PASTE TEMPLATE for adding a new pattern:
  *
  * {

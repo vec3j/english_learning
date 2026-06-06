@@ -80,7 +80,7 @@
 
   /* ===== Filter & Sort ===== */
   function filterPatterns() {
-    let results = [...PATTERNS];
+    let results = getAllPatterns();
 
     /* Tag filter — OR logic within selected tags, AND with search */
     if (state.activeTags.size > 0) {
@@ -142,6 +142,14 @@
     nameSpan.textContent = p.pattern;
     header.appendChild(idSpan);
     header.appendChild(nameSpan);
+
+    /* Custom badge for user-added patterns */
+    if (p._userAdded) {
+      const badge = document.createElement("span");
+      badge.className = "card-badge-custom";
+      badge.textContent = "Custom";
+      header.appendChild(badge);
+    }
     card.appendChild(header);
 
     /* Native feel */
@@ -242,6 +250,38 @@
       card.appendChild(tagsRow);
     }
 
+    /* Edit/Delete actions for user-added patterns */
+    if (p._userAdded) {
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "card-action-btn";
+      editBtn.textContent = "Edit";
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (typeof AddPattern !== "undefined" && AddPattern.open) {
+          AddPattern.open(p);
+        }
+      });
+      actions.appendChild(editBtn);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "card-action-btn card-action-delete";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!confirm('Delete pattern "' + p.pattern + '"? This cannot be undone.')) return;
+        const userPatterns = JSON.parse(localStorage.getItem("userPatterns") || "[]");
+        const filtered = userPatterns.filter(function (up) { return up.id !== p.id; });
+        localStorage.setItem("userPatterns", JSON.stringify(filtered));
+        renderPatterns();
+      });
+      actions.appendChild(deleteBtn);
+
+      card.appendChild(actions);
+    }
+
     return card;
   }
 
@@ -250,8 +290,14 @@
     const results = filterPatterns();
 
     /* Stats */
-    statsBar.textContent =
-      "Showing " + results.length + " of " + PATTERNS.length + " patterns";
+    const allPatterns = getAllPatterns();
+    const builtIn = PATTERNS.length;
+    const userCount = allPatterns.length - builtIn;
+    let statsText = "Showing " + results.length + " of " + allPatterns.length + " patterns";
+    if (userCount > 0) {
+      statsText += " (" + builtIn + " built-in + " + userCount + " custom)";
+    }
+    statsBar.textContent = statsText;
 
     /* Grid */
     patternGrid.innerHTML = "";
@@ -300,7 +346,24 @@
     searchInput.addEventListener("input", onSearchInput);
     sortSelect.addEventListener("change", onSortChange);
     clearFiltersBtn.addEventListener("click", onClearFilters);
+
+    /* Wire Add Pattern button */
+    const addBtn = document.getElementById("btn-add-pattern");
+    if (addBtn && typeof AddPattern !== "undefined") {
+      addBtn.addEventListener("click", function () {
+        AddPattern.open();
+      });
+    }
+
+    /* Initialize AddPattern module */
+    if (typeof AddPattern !== "undefined" && AddPattern.init) {
+      AddPattern.init();
+    }
   }
+
+  /* Expose renderPatterns for cross-module calls (add-pattern.js) */
+  window.refreshPatternGrid = renderPatterns;
+  window.buildPatternCard = createPatternCard;
 
   /* Boot when DOM is ready */
   if (document.readyState === "loading") {
