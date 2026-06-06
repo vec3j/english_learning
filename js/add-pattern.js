@@ -19,6 +19,7 @@ var AddPattern = (function () {
   var previewCard;
   var saveBtn, exportBtn;
   var deleteBtn; // only shown when editing existing user pattern
+  var aiResultInput, autofillBtn, copyPromptBtn, aiPromptText;
 
   var state = {
     editingId: null, // null = new pattern, number = editing existing
@@ -120,6 +121,7 @@ var AddPattern = (function () {
     sourceInput.value = "";
     difficultySelect.value = "intermediate";
     sentenceInput.value = "";
+    if (aiResultInput) aiResultInput.value = "";
 
     // Reset tags
     var chips = tagSelector.querySelectorAll(".tag-chip");
@@ -372,6 +374,139 @@ var AddPattern = (function () {
     }, 100);
   }
 
+  /* ===== AI Result Auto-Fill ===== */
+  function fillFromAIResult(raw) {
+    if (!raw || !raw.trim()) {
+      alert("Please paste the AI JSON result first.");
+      return;
+    }
+
+    // Try to extract JSON from the raw text (handles case where AI wraps in markdown or adds text)
+    var jsonStr = raw.trim();
+    var jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[0];
+    }
+
+    var data;
+    try {
+      data = JSON.parse(jsonStr);
+    } catch (e) {
+      alert(
+        "Invalid JSON. Please check the AI result and try again.\n\n" +
+        "Make sure you copied the complete JSON object (including the outer { }).\n\n" +
+        "Error: " + e.message
+      );
+      return;
+    }
+
+    // Fill each field
+    if (data.pattern) {
+      patternInput.value = data.pattern;
+    }
+    if (data.nativeFeel) {
+      nativeFeelInput.value = data.nativeFeel;
+    }
+    if (data.formula) {
+      formulaInput.value = data.formula;
+    }
+    if (data.usageNote) {
+      usageNoteInput.value = data.usageNote;
+    }
+    if (data.source) {
+      sourceInput.value = data.source;
+    }
+    if (data.difficulty && ["basic", "intermediate", "advanced"].indexOf(data.difficulty) !== -1) {
+      difficultySelect.value = data.difficulty;
+    }
+
+    // Select tags
+    if (data.tags && Array.isArray(data.tags)) {
+      var chips = tagSelector.querySelectorAll(".tag-chip");
+      // First, deselect all
+      for (var i = 0; i < chips.length; i++) {
+        chips[i].classList.remove("active");
+      }
+      // Then select matching tags
+      for (var j = 0; j < data.tags.length; j++) {
+        var tagId = data.tags[j].trim();
+        for (var k = 0; k < chips.length; k++) {
+          if (chips[k].dataset.tagId === tagId) {
+            chips[k].classList.add("active");
+            break;
+          }
+        }
+      }
+    }
+
+    // Fill examples
+    if (data.examples && Array.isArray(data.examples) && data.examples.length > 0) {
+      examplesContainer.innerHTML = "";
+      for (var m = 0; m < data.examples.length; m++) {
+        var ex = data.examples[m];
+        addExampleRow(
+          typeof ex === "string" ? ex : (ex.en || ""),
+          typeof ex === "string" ? "" : (ex.zh || "")
+        );
+      }
+    }
+
+    // Update live preview
+    updatePreview();
+
+    // Flash preview to draw attention
+    previewCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    previewCard.style.transition = "none";
+    previewCard.style.boxShadow = "0 0 0 3px #6366F1";
+    setTimeout(function () {
+      previewCard.style.transition = "box-shadow 0.5s ease";
+      previewCard.style.boxShadow = "";
+    }, 100);
+
+    // Show confirmation
+    showToast("Form auto-filled! Review and click Save.");
+  }
+
+  /* ===== Copy Prompt to Clipboard ===== */
+  function onCopyPrompt() {
+    var text = aiPromptText.textContent || aiPromptText.innerText || "";
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        copyPromptBtn.classList.add("copied");
+        copyPromptBtn.innerHTML = '<span class="btn-copy-icon">&#x2705;</span> Copied!';
+        setTimeout(function () {
+          copyPromptBtn.classList.remove("copied");
+          copyPromptBtn.innerHTML = '<span class="btn-copy-icon">&#x1F4CB;</span> Copy';
+        }, 2000);
+      }).catch(function () {
+        fallbackCopyPrompt(text);
+      });
+    } else {
+      fallbackCopyPrompt(text);
+    }
+  }
+
+  function fallbackCopyPrompt(text) {
+    var textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      copyPromptBtn.classList.add("copied");
+      copyPromptBtn.innerHTML = '<span class="btn-copy-icon">&#x2705;</span> Copied!';
+      setTimeout(function () {
+        copyPromptBtn.classList.remove("copied");
+        copyPromptBtn.innerHTML = '<span class="btn-copy-icon">&#x1F4CB;</span> Copy';
+      }, 2000);
+    } catch (e) {
+      alert("Copy failed. Please manually select and copy the prompt text.");
+    }
+    document.body.removeChild(textarea);
+  }
+
   /* ===== Save ===== */
   function onSave() {
     var data = getFormData();
@@ -573,6 +708,12 @@ var AddPattern = (function () {
     exportBtn = document.getElementById("ap-export-btn");
     deleteBtn = document.getElementById("ap-delete-btn");
 
+    // AI Assistant
+    aiResultInput = document.getElementById("ap-ai-result-input");
+    autofillBtn = document.getElementById("ap-autofill-btn");
+    copyPromptBtn = document.getElementById("ap-copy-prompt-btn");
+    aiPromptText = document.getElementById("ap-ai-prompt-text");
+
     // Build tag selector
     buildTagSelector();
 
@@ -590,6 +731,16 @@ var AddPattern = (function () {
     saveBtn.addEventListener("click", onSave);
     exportBtn.addEventListener("click", onExport);
     if (deleteBtn) deleteBtn.addEventListener("click", onDelete);
+
+    // AI Assistant events
+    if (copyPromptBtn) {
+      copyPromptBtn.addEventListener("click", onCopyPrompt);
+    }
+    if (autofillBtn) {
+      autofillBtn.addEventListener("click", function () {
+        fillFromAIResult(aiResultInput ? aiResultInput.value : "");
+      });
+    }
 
     // Live preview on input changes
     var inputsToWatch = [

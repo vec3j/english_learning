@@ -31,7 +31,13 @@
     </section>
 
     <section id="tag-filter-section">
-      <!-- Dynamically rendered -->
+      <div class="tag-filter-header">
+        <span class="tag-filter-header-label" style="display:none">Active Filters</span>
+        <button id="btn-clear-tags" class="btn-clear-tags" type="button">&#x2715; Clear all tags</button>
+      </div>
+      <div class="tag-filter-body">
+        <!-- Dynamically rendered -->
+      </div>
     </section>
 
     <section id="stats-bar" aria-live="polite">
@@ -60,17 +66,60 @@
       </div>
 
       <div class="ap-modal-body">
-        <!-- Step 1: Analyze Section -->
-        <div class="ap-analyze-section">
-          <span class="ap-form-label">&#x1F50D; Auto Analyze (Paste a sentence)</span>
-          <div class="ap-analyze-row">
-            <textarea
-              id="ap-sentence-input"
-              class="ap-form-textarea"
-              placeholder="Paste an English sentence you encountered, e.g. &quot;Not only did she finish early, but she also saved money.&quot;"
-            ></textarea>
-            <button id="ap-analyze-btn" class="btn-analyze" type="button">Analyze</button>
+        <!-- Step 1: AI Assistant -->
+        <div class="ap-ai-section">
+          <div class="ap-ai-header">
+            <span class="ap-form-label">&#x1F916; AI-Assisted Analysis</span>
+            <span class="ap-ai-badge">Recommended</span>
           </div>
+          <p class="ap-ai-desc">Copy the prompt below → paste to DeepSeek → copy the JSON result → paste back here → <strong>Auto Fill</strong></p>
+
+          <!-- Prompt Template -->
+          <div class="ap-ai-prompt-box">
+            <div class="ap-ai-prompt-header">
+              <span class="ap-ai-prompt-label">Prompt Template</span>
+              <button id="ap-copy-prompt-btn" class="btn-copy-prompt" type="button" title="Copy prompt to clipboard">
+                <span class="btn-copy-icon">&#x1F4CB;</span> Copy
+              </button>
+            </div>
+            <pre class="ap-ai-prompt-text" id="ap-ai-prompt-text">Analyze this English sentence and return ONLY a JSON object (no extra words) with the following structure:
+{
+  "pattern": "…",
+  "formula": "…",
+  "tags": ["…"],
+  "nativeFeel": "…",
+  "examples": [
+    {"en": "…", "zh": "…"}
+  ],
+  "usageNote": "…",
+  "difficulty": "basic|intermediate|advanced"
+}
+Sentence: <mark class="ap-prompt-placeholder">[Paste your English sentence here]</mark></pre>
+          </div>
+
+          <!-- Paste AI Result -->
+          <div class="ap-ai-paste-section">
+            <label class="ap-form-label" for="ap-ai-result-input">Paste AI Result (JSON)</label>
+            <textarea
+              id="ap-ai-result-input"
+              class="ap-form-textarea ap-ai-result-textarea"
+              placeholder="Paste the JSON returned by DeepSeek here..."
+              rows="6"
+            ></textarea>
+            <button id="ap-autofill-btn" class="btn-autofill" type="button">&#x2728; Auto Fill Form</button>
+          </div>
+
+          <details class="ap-ai-fallback">
+            <summary>Or use offline quick analysis</summary>
+            <div class="ap-analyze-row" style="margin-top:0.5rem">
+              <textarea
+                id="ap-sentence-input"
+                class="ap-form-textarea"
+                placeholder="Paste an English sentence..."
+              ></textarea>
+              <button id="ap-analyze-btn" class="btn-analyze" type="button">Analyze</button>
+            </div>
+          </details>
         </div>
 
         <div class="ap-divider">or fill manually</div>
@@ -156,6 +205,8 @@
     </div>
   </div>
 
+  <div id="bubbles-layer" aria-hidden="true"></div>
+
   <footer id="site-footer">
     <p>Add new patterns by editing <code>js/data.js</code></p>
   </footer>
@@ -165,5 +216,6 @@
   <script src="js/pattern-analyzer.js"></script>
   <script src="js/add-pattern.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/floating-bubbles.js"></script>
 </body>
 </html>

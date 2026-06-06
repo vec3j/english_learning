@@ -17,10 +17,12 @@
   const searchInput = document.getElementById("search-input");
   const sortSelect = document.getElementById("sort-select");
   const tagFilterSection = document.getElementById("tag-filter-section");
+  const tagFilterBody = tagFilterSection.querySelector(".tag-filter-body");
   const statsBar = document.getElementById("stats-bar");
   const patternGrid = document.getElementById("pattern-grid");
   const emptyState = document.getElementById("empty-state");
   const clearFiltersBtn = document.getElementById("clear-filters-btn");
+  const clearTagsBtn = document.getElementById("btn-clear-tags");
 
   /* ===== Helpers ===== */
   const normalize = (s) => (s || "").toLowerCase();
@@ -29,7 +31,7 @@
 
   /* ===== Tag Filter Rendering ===== */
   function renderTagFilters() {
-    tagFilterSection.innerHTML = "";
+    tagFilterBody.innerHTML = "";
 
     for (const [catKey, cat] of Object.entries(TAG_CATEGORIES)) {
       const catDiv = document.createElement("div");
@@ -74,7 +76,16 @@
       }
 
       catDiv.appendChild(chipsRow);
-      tagFilterSection.appendChild(catDiv);
+      tagFilterBody.appendChild(catDiv);
+    }
+
+    // Show/hide clear-tags button
+    if (clearTagsBtn) {
+      if (state.activeTags.size > 0) {
+        clearTagsBtn.classList.add("visible");
+      } else {
+        clearTagsBtn.classList.remove("visible");
+      }
     }
   }
 
@@ -129,7 +140,7 @@
   /* ===== Pattern Card Rendering ===== */
   function createPatternCard(p) {
     const card = document.createElement("div");
-    card.className = "pattern-card";
+    card.className = "pattern-card zh-hidden";
 
     /* Header: ID + Pattern name */
     const header = document.createElement("div");
@@ -163,7 +174,11 @@
       const feel = document.createElement("div");
       feel.className = "card-native-feel";
       feel.textContent = p.nativeFeel;
+      const feelHint = document.createElement("span");
+      feelHint.className = "zh-hint";
+      feelHint.textContent = "💡 双击显示中文";
       sec.appendChild(feel);
+      sec.appendChild(feelHint);
       card.appendChild(sec);
     }
 
@@ -204,6 +219,10 @@
           zh.className = "card-example-zh";
           zh.textContent = ex.zh;
           exDiv.appendChild(zh);
+          const zhHint = document.createElement("span");
+          zhHint.className = "zh-hint";
+          zhHint.textContent = "💡 双击显示中文";
+          exDiv.appendChild(zhHint);
         }
         exList.appendChild(exDiv);
       }
@@ -327,6 +346,13 @@
     renderPatterns();
   }
 
+  /* ===== Double-click card to toggle Chinese ===== */
+  function onCardDblClick(e) {
+    const card = e.target.closest(".pattern-card");
+    if (!card) return;
+    card.classList.toggle("zh-hidden");
+  }
+
   /* ===== Clear filters ===== */
   function onClearFilters() {
     state.activeTags.clear();
@@ -346,6 +372,18 @@
     searchInput.addEventListener("input", onSearchInput);
     sortSelect.addEventListener("change", onSortChange);
     clearFiltersBtn.addEventListener("click", onClearFilters);
+
+    /* Double-click card → toggle Chinese (global delegation for grid + modal preview) */
+    document.addEventListener("dblclick", onCardDblClick);
+
+    /* Clear all tags (one-click) */
+    if (clearTagsBtn) {
+      clearTagsBtn.addEventListener("click", function () {
+        state.activeTags.clear();
+        renderTagFilters();
+        renderPatterns();
+      });
+    }
 
     /* Wire Add Pattern button */
     const addBtn = document.getElementById("btn-add-pattern");
